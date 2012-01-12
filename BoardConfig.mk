@@ -16,14 +16,17 @@
 
 DEVICE_PACKAGE_OVERLAYS += $(LOCAL_PATH)/overlay
 
-# Include p4-common
--include device/samsung/p4-common/BoardConfigCommon.mk
+# Include p5-common
+-include device/samsung/p5-common/BoardConfigCommon.mk
 
 # Use the non-open-source parts, if they're present
--include vendor/samsung/p4/BoardConfigVendor.mk
+-include vendor/samsung/p5/BoardConfigVendor.mk
 
-BOARD_SYSTEMIMAGE_PARTITION_SIZE := 710934528
-BOARD_USERDATAIMAGE_PARTITION_SIZE := 14200340480
+TARGET_OTA_ASSERT_DEVICE := p5,GT-P7300
 
-TARGET_PREBUILT_KERNEL := device/samsung/p4/kernel
+BOARD_SYSTEMIMAGE_PARTITION_SIZE := 606076928
+BOARD_USERDATAIMAGE_PARTITION_SIZE := 14472970240
+
+TARGET_PREBUILT_KERNEL := device/samsung/p5/kernel
+
 
