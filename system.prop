@@ -8,6 +8,9 @@ rild.libargs=-d /dev/ttys0
 keyguard.no_require_sim=yes
 ro.sf.hwrotation=90
 
+ro.telephony.ril.v3=signalstrength,usehcradio
+ro.telephony.ril_class=SamsungRIL
+
 ro.com.google.clientidbase=android-samsung
 ro.com.google.clientidbase.gmm=android-samsung
 ro.com.google.clientidbase.yt=android-samsung
