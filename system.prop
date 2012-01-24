@@ -9,7 +9,7 @@ keyguard.no_require_sim=yes
 ro.sf.hwrotation=90
 
 ro.telephony.ril.v3=signalstrength,usehcradio
-ro.telephony.ril_class=SamsungRIL
+ro.telephony.ril_class=SamsungHCRIL
 
 ro.com.google.clientidbase=android-samsung
 ro.com.google.clientidbase.gmm=android-samsung

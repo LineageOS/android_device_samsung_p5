@@ -1,8 +1,7 @@
-From 86cd33739b959d011430348390938cf122da63d3 Mon Sep 17 00:00:00 2001
+From 10520767b177e2eb36968960867aa74f4f803743 Mon Sep 17 00:00:00 2001
 From: isimobile <isimobile@ismaakit.com>
 Date: Wed, 11 Jan 2012 20:45:03 +0200
-Subject: [PATCH] Added support for use of Honeycomb Radio (Modem) for
- GT-P7100 (p3).
+Subject: [PATCH] ril: Added support for use of Honeycomb Radio (Modem).
 
 Change-Id: I841a8b532380bd097c1ae3ed2ba3cb1d920123df
 ---
@@ -34,7 +33,7 @@ index 3a3d03f..2600c78 100644
      int             active;     /* 0=inactive, 1=active/physical link down, 2=active/physical link up */
      char *          type;       /* One of the PDP_type values in TS 27.007 section 10.1.1.
 diff --git a/libril/Android.mk b/libril/Android.mk
-index 5c96ec9..0c31784 100644
+index 5c96ec9..d1f3475 100644
 --- a/libril/Android.mk
 +++ b/libril/Android.mk
 @@ -21,6 +21,11 @@ LOCAL_MODULE:= libril
@@ -42,7 +41,7 @@ index 5c96ec9..0c31784 100644
  LOCAL_LDLIBS += -lpthread
  
 +#USE HCRADIO
-+ifeq ($(BOARD_USES_HC_RADIO),true) 
++ifeq ($(BOARD_USES_HC_RADIO),true)
 +LOCAL_CFLAGS += -DHCRADIO
 +endif
 +

@@ -1,26 +1,31 @@
-From 7507127287aa8cf84b5e811977d95400b029f95b Mon Sep 17 00:00:00 2001
+From 06eb6367a2e7d72e3c40b6f21219283fdebdfac6 Mon Sep 17 00:00:00 2001
 From: isimobile <isimobile@ismaakit.com>
 Date: Wed, 11 Jan 2012 21:34:47 +0200
-Subject: [PATCH] Added support for use of Honeycomb Radio (Modem) for
- GT-P7100 (p3).
+Subject: [PATCH] telephony: Added support for use of Honeycomb Radio (Modem).
+
+-squashed:
+https://github.com/isimobile/android_frameworks_base/commit/7507127287aa8cf84b5e811977d95400b029f95b
+https://github.com/isimobile/android_frameworks_base/commit/af2b84d1860b38952784ae116172e00a4b445a1d
+https://github.com/isimobile/android_frameworks_base/commit/872156a81fb4185217e7642d10ec33da4893a2b3
+
+-cleaned up some whitespace
 
 Change-Id: I3a3474245bb336bc3f275605648f5f94f3f9b6e7
 ---
  .../android/internal/telephony/DataConnection.java |   17 ++++-
  .../java/com/android/internal/telephony/RIL.java   |    7 ++-
- .../com/android/internal/telephony/SamsungRIL.java |   74 ++++++++++++++++++++
+ .../android/internal/telephony/SamsungHCRIL.java   |   74 ++++++++++++++++++++
  3 files changed, 95 insertions(+), 3 deletions(-)
- create mode 100644 telephony/java/com/android/internal/telephony/SamsungRIL.java
+ create mode 100644 telephony/java/com/android/internal/telephony/SamsungHCRIL.java
 
 diff --git a/telephony/java/com/android/internal/telephony/DataConnection.java b/telephony/java/com/android/internal/telephony/DataConnection.java
-index 4619899..6b9c05a 100644
+index 4619899..19a396e 100644
 --- a/telephony/java/com/android/internal/telephony/DataConnection.java
 +++ b/telephony/java/com/android/internal/telephony/DataConnection.java
-@@ -329,13 +329,28 @@ public abstract class DataConnection extends StateMachine {
-         }
+@@ -330,12 +330,27 @@ public abstract class DataConnection extends StateMachine {
          if (DBG) log("NotifyDisconnectCompleted DisconnectParams=" + dp);
      }
-+    
+ 
 +    protected boolean needsOldRilFeature(String feature) {
 +        String[] features = SystemProperties.get("ro.telephony.ril.v3", "").split(",");
 +        for (String found: features) {
@@ -29,25 +34,25 @@ index 4619899..6b9c05a 100644
 +        }
 +        return false;
 +    }
- 
++
      protected int getRadioTechnology(int defaultRadioTechnology) {
          int radioTechnology;
          if (mRilVersion < 6) {
              radioTechnology = defaultRadioTechnology;
          } else {
 -            radioTechnology = phone.getServiceState().getRadioTechnology() + 2;
-+        	if (needsOldRilFeature("usehcradio") ) {
++             if (needsOldRilFeature("usehcradio") ) {
 +               radioTechnology = phone.getServiceState().getRadioTechnology() - 2;
 +               if (radioTechnology != 1) // in reality if it is not 1 something is wrong for hc ??
-+            	   radioTechnology = 1;
-+        	}
-+        	else
-+        	   radioTechnology = phone.getServiceState().getRadioTechnology() + 2; // orginal code
++		   radioTechnology = 1;
++	       }
++               else
++		  radioTechnology = phone.getServiceState().getRadioTechnology() + 2; // orginal code
          }
          return radioTechnology;
      }
 diff --git a/telephony/java/com/android/internal/telephony/RIL.java b/telephony/java/com/android/internal/telephony/RIL.java
-index 529724b..933f393 100644
+index 529724b..042075d 100644
 --- a/telephony/java/com/android/internal/telephony/RIL.java
 +++ b/telephony/java/com/android/internal/telephony/RIL.java
 @@ -2966,7 +2966,7 @@ public class RIL extends BaseCommands implements CommandsInterface {
@@ -64,18 +69,18 @@ index 529724b..933f393 100644
          } else {
              dataCall.status = p.readInt();
 -            dataCall.suggestedRetryTime = p.readInt();
-+            if (needsOldRilFeature("usehcradio")) 
++            if (needsOldRilFeature("usehcradio"))
 +                dataCall.suggestedRetryTime = -1;
 +            else
-+            	dataCall.suggestedRetryTime = p.readInt();	            
++	      dataCall.suggestedRetryTime = p.readInt();
              dataCall.cid = p.readInt();
              dataCall.active = p.readInt();
              dataCall.type = p.readString();
-diff --git a/telephony/java/com/android/internal/telephony/SamsungRIL.java b/telephony/java/com/android/internal/telephony/SamsungRIL.java
+diff --git a/telephony/java/com/android/internal/telephony/SamsungHCRIL.java b/telephony/java/com/android/internal/telephony/SamsungHCRIL.java
 new file mode 100644
-index 0000000..0b7b9a8
+index 0000000..fd026ef
 --- /dev/null
-+++ b/telephony/java/com/android/internal/telephony/SamsungRIL.java
++++ b/telephony/java/com/android/internal/telephony/SamsungHCRIL.java
 @@ -0,0 +1,74 @@
 +package com.android.internal.telephony;
 +
@@ -104,13 +109,13 @@ index 0000000..0b7b9a8
 +
 +import android.util.Log;
 +
-+public class SamsungRIL extends RIL implements CommandsInterface {
++public class SamsungHCRIL extends RIL implements CommandsInterface {
 +
 +	private boolean mSignalbarCount = SystemProperties.getInt("ro.telephony.sends_barcount", 0) == 1 ? true : false;
 +
 +	private boolean mIsSamsungCdma = SystemProperties.getBoolean("ro.ril.samsung_cdma", false);
 +
-+public SamsungRIL(Context context, int networkMode, int cdmaSubscription) {
++public SamsungHCRIL(Context context, int networkMode, int cdmaSubscription) {
 +	super(context, networkMode, cdmaSubscription);
 +}
 +
@@ -131,7 +136,7 @@ index 0000000..0b7b9a8
 +                response[i] = p.readInt();
 +            }
 +        }
-+        
++
 +		if(mSignalbarCount)
 +		{
 +			//Samsung sends the count of bars that should be displayed instead of
@@ -149,7 +154,7 @@ index 0000000..0b7b9a8
 +
 +        return response;
 +	}
-+		
++
 +}
 -- 
 1.7.5.4
