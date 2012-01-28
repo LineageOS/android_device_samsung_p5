@@ -1,21 +1,22 @@
-From 06eb6367a2e7d72e3c40b6f21219283fdebdfac6 Mon Sep 17 00:00:00 2001
+From ea77ee1da93062c43e0756cb3609421f318c0590 Mon Sep 17 00:00:00 2001
 From: isimobile <isimobile@ismaakit.com>
 Date: Wed, 11 Jan 2012 21:34:47 +0200
 Subject: [PATCH] telephony: Added support for use of Honeycomb Radio (Modem).
 
--squashed:
+-squashed (RIL: reference ICS and GB):
 https://github.com/isimobile/android_frameworks_base/commit/7507127287aa8cf84b5e811977d95400b029f95b
 https://github.com/isimobile/android_frameworks_base/commit/af2b84d1860b38952784ae116172e00a4b445a1d
 https://github.com/isimobile/android_frameworks_base/commit/872156a81fb4185217e7642d10ec33da4893a2b3
+https://github.com/isimobile/android_frameworks_base/commit/400bbc4e3ce8e9e0219b31bb985e6628c50d0f07
 
 -cleaned up some whitespace
 
 Change-Id: I3a3474245bb336bc3f275605648f5f94f3f9b6e7
 ---
  .../android/internal/telephony/DataConnection.java |   17 ++++-
- .../java/com/android/internal/telephony/RIL.java   |    7 ++-
- .../android/internal/telephony/SamsungHCRIL.java   |   74 ++++++++++++++++++++
- 3 files changed, 95 insertions(+), 3 deletions(-)
+ .../java/com/android/internal/telephony/RIL.java   |    7 +-
+ .../android/internal/telephony/SamsungHCRIL.java   |   86 ++++++++++++++++++++
+ 3 files changed, 107 insertions(+), 3 deletions(-)
  create mode 100644 telephony/java/com/android/internal/telephony/SamsungHCRIL.java
 
 diff --git a/telephony/java/com/android/internal/telephony/DataConnection.java b/telephony/java/com/android/internal/telephony/DataConnection.java
@@ -78,48 +79,57 @@ index 529724b..042075d 100644
              dataCall.type = p.readString();
 diff --git a/telephony/java/com/android/internal/telephony/SamsungHCRIL.java b/telephony/java/com/android/internal/telephony/SamsungHCRIL.java
 new file mode 100644
-index 0000000..fd026ef
+index 0000000..5ea2325
 --- /dev/null
 +++ b/telephony/java/com/android/internal/telephony/SamsungHCRIL.java
-@@ -0,0 +1,74 @@
+@@ -0,0 +1,86 @@
 +package com.android.internal.telephony;
 +
-+import java.util.ArrayList;
-+import java.util.Collections;
-+
-+import android.content.BroadcastReceiver;
 +import android.content.Context;
-+import android.content.Intent;
-+import android.content.IntentFilter;
-+import android.net.ConnectivityManager;
-+import android.os.Handler;
 +import android.os.Message;
-+import android.os.AsyncResult;
 +import android.os.Parcel;
 +import android.os.SystemProperties;
-+import android.telephony.PhoneNumberUtils;
-+import android.telephony.SmsMessage;
-+import android.telephony.TelephonyManager;
 +import static com.android.internal.telephony.RILConstants.*;
-+
-+import com.android.internal.telephony.IccUtils;
-+import com.android.internal.telephony.RILConstants;
-+import com.android.internal.telephony.CommandsInterface.RadioState;
-+import com.android.internal.telephony.cdma.CdmaInformationRecords;
-+
-+import android.util.Log;
 +
 +public class SamsungHCRIL extends RIL implements CommandsInterface {
 +
-+	private boolean mSignalbarCount = SystemProperties.getInt("ro.telephony.sends_barcount", 0) == 1 ? true : false;
++    private boolean mSignalbarCount = SystemProperties.getInt("ro.telephony.sends_barcount", 0) == 1 ? true : false;        
 +
-+	private boolean mIsSamsungCdma = SystemProperties.getBoolean("ro.ril.samsung_cdma", false);
++    public SamsungHCRIL(Context context, int networkMode, int cdmaSubscription) {
++        super(context, networkMode, cdmaSubscription);
++    }
 +
-+public SamsungHCRIL(Context context, int networkMode, int cdmaSubscription) {
-+	super(context, networkMode, cdmaSubscription);
-+}
++    //SAMSUNG SGS STATES
++    static final int RIL_UNSOL_STK_SEND_SMS_RESULT = 11002;
++    static final int RIL_UNSOL_O2_HOME_ZONE_INFO = 11007;
++    static final int RIL_UNSOL_DEVICE_READY_NOTI = 11008;
++    static final int RIL_UNSOL_SAMSUNG_UNKNOWN_MAGIC_REQUEST_3 = 11010;
++    static final int RIL_UNSOL_SAMSUNG_UNKNOWN_MAGIC_REQUEST_2 = 11011;
++    static final int RIL_UNSOL_HSDPA_STATE_CHANGED = 11016;
++    static final int RIL_UNSOL_SAMSUNG_UNKNOWN_MAGIC_REQUEST = 11012;
++    static final int RIL_REQUEST_DIAL_EMERGENCY = 10016;
 +
-+	@Override
++    @Override
++    public void
++    setRadioPower(boolean on, Message result) {
++        RILRequest rr = RILRequest.obtain(RIL_REQUEST_RADIO_POWER, result);
++        //samsung stuff for airplane mode
++        if (on) {
++            rr.mp.writeInt(1);
++            rr.mp.writeInt(1);
++        } else {
++            rr.mp.writeInt(2);
++            rr.mp.writeInt(0);
++            rr.mp.writeInt(0);
++        }
++        if (RILJ_LOGD) {
++            riljLog(rr.serialString() + "> " + requestToString(rr.mRequest)
++                    + (on ? " on" : " off"));
++        }
++        send(rr);
++    }
++
++    @Override
 +    protected Object
 +    responseSignalStrength(Parcel p) {
 +        int numInts = 12;
@@ -137,23 +147,26 @@ index 0000000..fd026ef
 +            }
 +        }
 +
-+		if(mSignalbarCount)
-+		{
-+			//Samsung sends the count of bars that should be displayed instead of
-+			//a real signal strength
-+			response[0] = ((response[0] & 0xFF00) >> 8) * 3; //gsmDbm
-+		} else {
-+			response[0] = response[0] & 0xFF; //gsmDbm
-+		}
-+		response[1] = -1; //gsmEcio
-+		response[2] = (response[2] < 0)?-120:-response[2]; //cdmaDbm
-+		response[3] = (response[3] < 0)?-160:-response[3]; //cdmaEcio
-+		response[4] = (response[4] < 0)?-120:-response[4]; //evdoRssi
-+		response[5] = (response[5] < 0)?-1:-response[5]; //evdoEcio
-+
++        /* Matching Samsung signal strength to asu.
++		   Method taken from Samsungs cdma/gsmSignalStateTracker */
++        if(mSignalbarCount)
++        {
++            //Samsung sends the count of bars that should be displayed instead of
++            //a real signal strength
++            response[0] = ((response[0] & 0xFF00) >> 8) * 3; //gsmDbm
++        } else {
++            response[0] = response[0] & 0xFF; //gsmDbm
++        }
++        response[1] = -1; //gsmEcio
++        response[2] = (response[2] < 0)?-120:-response[2]; //cdmaDbm
++        response[3] = (response[3] < 0)?-160:-response[3]; //cdmaEcio
++        response[4] = (response[4] < 0)?-120:-response[4]; //evdoRssi
++        response[5] = (response[5] < 0)?-1:-response[5]; //evdoEcio
++        if(response[6] < 0 || response[6] > 8)
++            response[6] = -1;
 +
 +        return response;
-+	}
++    }
 +
 +}
 -- 
