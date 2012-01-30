@@ -1,4 +1,4 @@
-From ea77ee1da93062c43e0756cb3609421f318c0590 Mon Sep 17 00:00:00 2001
+From eae37df82c4d43b005cf890f8d309ebbdd6817f1 Mon Sep 17 00:00:00 2001
 From: isimobile <isimobile@ismaakit.com>
 Date: Wed, 11 Jan 2012 21:34:47 +0200
 Subject: [PATCH] telephony: Added support for use of Honeycomb Radio (Modem).
@@ -8,6 +8,7 @@ https://github.com/isimobile/android_frameworks_base/commit/7507127287aa8cf84b5e
 https://github.com/isimobile/android_frameworks_base/commit/af2b84d1860b38952784ae116172e00a4b445a1d
 https://github.com/isimobile/android_frameworks_base/commit/872156a81fb4185217e7642d10ec33da4893a2b3
 https://github.com/isimobile/android_frameworks_base/commit/400bbc4e3ce8e9e0219b31bb985e6628c50d0f07
+https://github.com/isimobile/android_frameworks_base/commit/7cb289d9e59ac69350dd2377eff63940641df603
 
 -cleaned up some whitespace
 
@@ -15,8 +16,8 @@ Change-Id: I3a3474245bb336bc3f275605648f5f94f3f9b6e7
 ---
  .../android/internal/telephony/DataConnection.java |   17 ++++-
  .../java/com/android/internal/telephony/RIL.java   |    7 +-
- .../android/internal/telephony/SamsungHCRIL.java   |   86 ++++++++++++++++++++
- 3 files changed, 107 insertions(+), 3 deletions(-)
+ .../android/internal/telephony/SamsungHCRIL.java   |   87 ++++++++++++++++++++
+ 3 files changed, 108 insertions(+), 3 deletions(-)
  create mode 100644 telephony/java/com/android/internal/telephony/SamsungHCRIL.java
 
 diff --git a/telephony/java/com/android/internal/telephony/DataConnection.java b/telephony/java/com/android/internal/telephony/DataConnection.java
@@ -79,16 +80,17 @@ index 529724b..042075d 100644
              dataCall.type = p.readString();
 diff --git a/telephony/java/com/android/internal/telephony/SamsungHCRIL.java b/telephony/java/com/android/internal/telephony/SamsungHCRIL.java
 new file mode 100644
-index 0000000..5ea2325
+index 0000000..106de6f
 --- /dev/null
 +++ b/telephony/java/com/android/internal/telephony/SamsungHCRIL.java
-@@ -0,0 +1,86 @@
+@@ -0,0 +1,87 @@
 +package com.android.internal.telephony;
 +
 +import android.content.Context;
 +import android.os.Message;
 +import android.os.Parcel;
 +import android.os.SystemProperties;
++import android.util.Log;
 +import static com.android.internal.telephony.RILConstants.*;
 +
 +public class SamsungHCRIL extends RIL implements CommandsInterface {
@@ -98,7 +100,7 @@ index 0000000..5ea2325
 +    public SamsungHCRIL(Context context, int networkMode, int cdmaSubscription) {
 +        super(context, networkMode, cdmaSubscription);
 +    }
-+
++    static final String LOG_TAG = "RILJ";
 +    //SAMSUNG SGS STATES
 +    static final int RIL_UNSOL_STK_SEND_SMS_RESULT = 11002;
 +    static final int RIL_UNSOL_O2_HOME_ZONE_INFO = 11007;
