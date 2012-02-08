@@ -10,6 +10,7 @@ ro.sf.hwrotation=90
 
 ro.telephony.ril.v3=signalstrength,usehcradio
 ro.telephony.ril_class=SamsungHCRIL
+ro.telephony.sends_barcount=1
 
 ro.com.google.clientidbase=android-samsung
 ro.com.google.clientidbase.gmm=android-samsung
