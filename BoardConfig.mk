@@ -16,16 +16,15 @@
 
 DEVICE_PACKAGE_OVERLAYS += $(LOCAL_PATH)/overlay
 
-BOARD_USES_HC_RADIO := true
-
 # Include p5-common
 -include device/samsung/p5-common/BoardConfigCommon.mk
 
 # Use the non-open-source parts, if they're present
 -include vendor/samsung/p5/BoardConfigVendor.mk
 
+BOARD_USES_HC_RADIO := true
+
 TARGET_OTA_ASSERT_DEVICE := p5,GT-P7300
 
 TARGET_PREBUILT_KERNEL := device/samsung/p5/kernel
-
 
